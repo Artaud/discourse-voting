@@ -23,7 +23,7 @@ module DiscourseVoting
         current_user.custom_fields["votes"] = current_user.votes.dup.push(params["topic_id"])
         current_user.save
 
-        update_vote_count(topic)
+        add_vote_count(topic)
 
         voted = true
       end
@@ -48,7 +48,7 @@ module DiscourseVoting
       current_user.custom_fields["votes"] = current_user.votes.dup - [params["topic_id"].to_s]
       current_user.save
 
-      update_vote_count(topic)
+      remove_vote_count(topic)
 
       obj = {
         can_vote: !current_user.reached_voting_limit?,
@@ -63,8 +63,15 @@ module DiscourseVoting
 
     protected
 
-    def update_vote_count(topic)
-      topic.custom_fields["vote_count"] = UserCustomField.where(value: topic.id.to_s, name: 'votes').count
+    def add_vote_count(topic)
+      topic.custom_fields['vote_count'] = (topic.custom_fields['vote_count'].to_i + 1).to_s
+      # topic.custom_fields["vote_count"] = UserCustomField.where(value: topic.id.to_s, name: 'votes').count
+      topic.save
+    end
+
+    def remove_vote_count(topic)
+      topic.custom_fields['vote_count'] = (topic.custom_fields['vote_count'].to_i - 1).to_s
+      # topic.custom_fields["vote_count"] = UserCustomField.where(value: topic.id.to_s, name: 'votes').count
       topic.save
     end
 
